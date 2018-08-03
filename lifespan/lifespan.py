@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--hostid', '-i', help='host id')
 parser.add_argument('--start', '-s', help='first time to get metrics from mackrel')
 parser.add_argument('--end', '-e', help='end time to get metrics from mackrel')
 parser.add_argument('--deadline', '-d', help='deadline of disk capacity')
@@ -20,7 +21,7 @@ headers = {'X-Api-Key': api_key}
 params  = {'name': f'filesystem.{args.partition_name}.used', 'from': start, 'to': end}
 
 r = requests.get(
-    'https://mackerel.io/api/v0/hosts/3d2zGEvSwif/metrics',
+    f'https://mackerel.io/api/v0/hosts/{args.hostid}/metrics',
     headers=headers,
     params=params
 )
@@ -37,7 +38,7 @@ y = [y['value']/ 1024 / 1024 /1024 for y in data['metrics']]
 np.polyfit(x, y, 1)
 
 d = int(time.mktime(time.strptime(args.start, "%Y/%m/%d")))
-for i in range(60):
+for i in range(365):
     d = d + 86400
     if np.poly1d(np.polyfit(x, y, 1))(d) > int(args.deadline):
         print(time.strftime('%Y/%m/%d', time.gmtime(d)))
